@@ -12,11 +12,11 @@ import signal
 import sys
 from datetime import datetime
 from pathlib import Path
-from threading import Thread, Lock
+from threading import Lock, Thread
 
+import serial
 from flask import Flask, render_template
 from flask_socketio import SocketIO
-import serial
 from serial.tools import list_ports
 
 # JSON pattern for parsing sensor data
@@ -24,18 +24,25 @@ JSON_PATTERN = re.compile(r"\{.*\}")
 
 # CSV header compatible with other AirCube scripts
 CSV_HEADER = [
-    "timestamp", "ens210_status", "temperature_c", "temperature_f",
-    "humidity", "ens16x_status", "etvoc", "eco2", "aqi"
+    "timestamp",
+    "ens210_status",
+    "temperature_c",
+    "temperature_f",
+    "humidity",
+    "ens16x_status",
+    "etvoc",
+    "eco2",
+    "aqi",
 ]
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'aircube-secret-key-change-in-production'
+app.config["SECRET_KEY"] = "aircube-secret-key-change-in-production"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Global state
 serial_connection = None
 serial_lock = Lock()
-data_buffer = collections.deque(maxlen=500)
+data_buffer = collections.deque(maxlen=1000)
 t0 = None
 
 # CSV logging
@@ -71,10 +78,13 @@ def find_aircube_port():
     ports = list_ports.comports()
     # Try to find ESP32 device
     for port in ports:
-        if 'USB' in port.description or 'ESP32' in port.description or 'CP210' in port.description:
+        if (
+            "USB" in port.description
+            or "ESP32" in port.description
+            or "CP210" in port.description
+        ):
             return port.device
-    # Fall back to first available port
-    return ports[0].device if ports else None
+    return None
 
 
 def init_csv_logging(log_dir):
@@ -101,11 +111,11 @@ def init_csv_logging(log_dir):
         return False
 
     # Create timestamped CSV file
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     csv_filename = log_path / f"aircube_log_{timestamp}.csv"
 
     try:
-        csv_file = open(csv_filename, 'w', newline='')
+        csv_file = open(csv_filename, "w", newline="")
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(CSV_HEADER)
         csv_file.flush()
@@ -175,7 +185,7 @@ def serial_reader_thread(port, baud=115200):
                                 csv_file.flush()
 
                             # Broadcast to all connected clients
-                            socketio.emit('sensor_data', broadcast_data)
+                            socketio.emit("sensor_data", broadcast_data)
 
                 except (serial.SerialException, OSError) as e:
                     print(f"Serial error: {e}")
@@ -188,32 +198,32 @@ def serial_reader_thread(port, baud=115200):
         print("Serial connection closed")
 
 
-@app.route('/')
+@app.route("/")
 def index():
     """Serve the main dashboard."""
-    return render_template('index.html')
+    return render_template("index.html")
 
 
-@socketio.on('connect')
+@socketio.on("connect")
 def handle_connect():
     """When a client connects, send them historical data."""
     print(f"Client connected")
     # Send historical data buffer
     if data_buffer:
-        socketio.emit('historical_data', list(data_buffer))
+        socketio.emit("historical_data", list(data_buffer))
 
 
-@socketio.on('disconnect')
+@socketio.on("disconnect")
 def handle_disconnect():
     """Handle client disconnect."""
     print(f"Client disconnected")
 
 
-@socketio.on('request_history')
+@socketio.on("request_history")
 def handle_history_request():
     """Send historical data on request."""
     if data_buffer:
-        socketio.emit('historical_data', list(data_buffer))
+        socketio.emit("historical_data", list(data_buffer))
 
 
 def cleanup():
@@ -251,7 +261,7 @@ def main():
     print(f"Using port: {port}")
 
     # Check for log directory configuration
-    log_dir = os.environ.get('AIRCUBE_LOG_DIR')
+    log_dir = os.environ.get("AIRCUBE_LOG_DIR")
     if log_dir:
         print(f"Log directory configured: {log_dir}")
         if init_csv_logging(log_dir):
@@ -272,10 +282,12 @@ def main():
     print(f"\nPress Ctrl+C to stop\n")
 
     try:
-        socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
+        socketio.run(
+            app, host="0.0.0.0", port=5000, debug=False, allow_unsafe_werkzeug=True
+        )
     finally:
         cleanup()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
