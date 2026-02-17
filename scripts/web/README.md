@@ -22,18 +22,11 @@ cd /home/pi
 git clone <your-repo> aircube-web
 cd aircube-web/scripts/web
 
-# Update pip and setuptools first (important for ARM)
-python3 -m pip install --upgrade pip setuptools wheel
-
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
+uv venv
 ```
 
 If you encounter any issues, install system dependencies first:
+
 ```bash
 sudo apt update
 sudo apt install python3-dev python3-pip python3-venv
@@ -45,11 +38,8 @@ sudo apt install python3-dev python3-pip python3-venv
 cd scripts/web
 
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
+uv venv
+uv run app.py
 ```
 
 ## Usage
@@ -57,23 +47,27 @@ pip install -r requirements.txt
 ### Run the web server
 
 **Without CSV logging:**
+
 ```bash
-python app.py
+uv run app.py
 ```
 
 **With CSV logging:**
+
 ```bash
 # Set the log directory (will be created if it doesn't exist)
 export AIRCUBE_LOG_DIR=./data/logs
-python app.py
+uv run app.py
 ```
 
 Or in one line:
+
 ```bash
-AIRCUBE_LOG_DIR=./data/logs python app.py
+AIRCUBE_LOG_DIR=./data/logs uv run app.py
 ```
 
 The server will:
+
 1. Auto-detect the AirCube USB serial port
 2. Start streaming sensor data
 3. Serve the dashboard at `http://localhost:5000`
@@ -82,11 +76,13 @@ The server will:
 ### Access from other devices
 
 Find your Raspberry Pi's IP address:
+
 ```bash
 hostname -I
 ```
 
 Then access from any device on the same network:
+
 ```
 http://<raspberry-pi-ip>:5000
 ```
@@ -100,18 +96,22 @@ The web app supports automatic CSV logging of all sensor data.
 ### Enable CSV Logging
 
 **Option 1: Use the convenience script**
+
 ```bash
 ./start-with-logging.sh
 ```
+
 This will save logs to `./data/logs` by default.
 
 **Option 2: Set environment variable manually**
+
 ```bash
 export AIRCUBE_LOG_DIR=/home/pi/aircube-data
 python app.py
 ```
 
 Or permanently in your shell profile (`~/.bashrc` or `~/.zshrc`):
+
 ```bash
 echo 'export AIRCUBE_LOG_DIR=/home/pi/aircube-data' >> ~/.bashrc
 source ~/.bashrc
@@ -135,6 +135,7 @@ AIRCUBE_LOG_DIR=~/aircube-logs python app.py
 ```
 
 Logs will be saved as:
+
 ```
 ~/aircube-logs/aircube_log_20260216_143052.csv
 ~/aircube-logs/aircube_log_20260216_150123.csv
@@ -181,6 +182,7 @@ sudo systemctl status aircube-web
 ```
 
 View logs:
+
 ```bash
 sudo journalctl -u aircube-web -f
 ```
@@ -190,6 +192,7 @@ sudo journalctl -u aircube-web -f
 ### No serial port found
 
 List available ports:
+
 ```bash
 python -c "from serial.tools import list_ports; [print(f'{p.device} - {p.description}') for p in list_ports.comports()]"
 ```
@@ -197,6 +200,7 @@ python -c "from serial.tools import list_ports; [print(f'{p.device} - {p.descrip
 ### Permission denied on serial port
 
 Add user to dialout group (Linux):
+
 ```bash
 sudo usermod -a -G dialout $USER
 # Log out and back in for changes to take effect
@@ -205,6 +209,7 @@ sudo usermod -a -G dialout $USER
 ### Can't access from other devices
 
 Make sure firewall allows port 5000:
+
 ```bash
 sudo ufw allow 5000
 ```
@@ -234,6 +239,7 @@ Web Browser (Any Device)
 ## Performance
 
 On Raspberry Pi 5:
+
 - **CPU Usage**: <5%
 - **RAM Usage**: ~60MB
 - **Update Rate**: Real-time (1 sample/second from device)
@@ -244,18 +250,21 @@ On Raspberry Pi 5:
 ### Change history buffer size
 
 In `app.py`, line 16:
+
 ```python
 data_buffer = collections.deque(maxlen=500)  # Change to desired size
 ```
 
 In `templates/index.html`, line 132:
+
 ```javascript
-const maxPoints = 300;  // Change to match or be less than backend
+const maxPoints = 3000; // Change to match or be less than backend
 ```
 
 ### Change port or host
 
 In `app.py`, last line:
+
 ```python
 socketio.run(app, host='0.0.0.0', port=5000, debug=False)
 ```
@@ -263,6 +272,7 @@ socketio.run(app, host='0.0.0.0', port=5000, debug=False)
 ### Manually specify serial port
 
 In `app.py`, change `main()` function:
+
 ```python
 # port = find_aircube_port()  # Comment out auto-detection
 port = '/dev/ttyUSB0'  # Specify your port
