@@ -207,7 +207,7 @@
         });
 
         // Data storage
-        const maxPoints = 3000;
+        const maxPoints = 100000;
         const chartData = {
             time: [],
             temperature_f: [],
@@ -229,6 +229,11 @@
             plugins: {
                 legend: {
                     position: 'top',
+                },
+                decimation: {
+                    enabled: true,
+                    algorithm: 'lttb',
+                    samples: 60,
                 },
             },
             scales: {
@@ -258,17 +263,17 @@
                         label: 'Temperature (°F)',
                         data: [],
                         borderColor: 'rgb(239, 83, 80)',
-                        backgroundColor: 'rgba(239, 83, 80, 0.1)',
                         tension: 0.1,
-                        borderWidth: 2
+                        borderWidth: 2,
+                        pointStyle: false
                     },
                     {
                         label: 'Humidity (%)',
                         data: [],
                         borderColor: 'rgb(33, 150, 243)',
-                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
                         tension: 0.1,
-                        borderWidth: 2
+                        borderWidth: 2,
+                        pointStyle: false
                     }
                 ]
             },
@@ -286,10 +291,10 @@
                         label: 'AQI',
                         data: [],
                         borderColor: 'rgb(76, 175, 80)',
-                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
                         tension: 0.1,
                         borderWidth: 2,
-                        fill: true
+                        fill: true,
+                        pointStyle: false
                     }
                 ]
             },
@@ -319,17 +324,17 @@
                         label: 'eCO2 (ppm)',
                         data: [],
                         borderColor: 'rgb(156, 39, 176)',
-                        backgroundColor: 'rgba(156, 39, 176, 0.1)',
                         tension: 0.1,
-                        borderWidth: 2
+                        borderWidth: 2,
+                        pointStyle: false
                     },
                     {
                         label: 'eTVOC (ppb)',
                         data: [],
                         borderColor: 'rgb(0, 150, 136)',
-                        backgroundColor: 'rgba(0, 150, 136, 0.1)',
                         tension: 0.1,
-                        borderWidth: 2
+                        borderWidth: 2,
+                        pointStyle: false
                     }
                 ]
             },

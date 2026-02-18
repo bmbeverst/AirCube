@@ -42,7 +42,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Global state
 serial_connection = None
 serial_lock = Lock()
-data_buffer = collections.deque(maxlen=1000)
+data_buffer = collections.deque(maxlen=100000)
 t0 = None
 
 # CSV logging
@@ -255,7 +255,18 @@ def main():
         print("Available ports:")
         for p in list_ports.comports():
             print(f"  {p.device} - {p.description}")
-        return
+        return  # Comment out to test locally without AirCube
+        print("Adding test data to simulate connection...")
+        for x in range(data_buffer.maxlen):
+            broadcast_data = {
+                "time": x,
+                "temperature_f": 86,
+                "humidity": 34,
+                "aqi": 50,
+                "eco2": 1000,
+                "etvoc": 100,
+            }
+            data_buffer.append(broadcast_data)
 
     print(f"Starting AirCube Web Server...")
     print(f"Using port: {port}")
