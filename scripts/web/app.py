@@ -144,20 +144,9 @@ def serial_reader_thread(port, baud=115200):
                         parsed = parse_json_line(decoded)
 
                         if parsed:
-                            ts = parsed.get("timestamp")
-                            if ts is None:
-                                continue
-
-                            ts = float(ts)
-                            if t0 is None:
-                                t0 = ts
-
-                            # Convert to seconds
-                            t_rel = (ts - t0) / 1000.0 if ts > 1000 else (ts - t0)
-
                             # Prepare data for broadcast
                             broadcast_data = {
-                                "time": round(t_rel, 2),
+                                "time": parsed.get("timestamp"),
                                 "temperature_f": parsed.get("temperature_f"),
                                 "humidity": parsed.get("humidity"),
                                 "aqi": parsed.get("aqi"),
@@ -255,16 +244,19 @@ def main():
         print("Available ports:")
         for p in list_ports.comports():
             print(f"  {p.device} - {p.description}")
-        return  # Comment out to test locally without AirCube
+        # return  # Comment out to test locally without AirCube
+
         print("Adding test data to simulate connection...")
+        import random
+
         for x in range(data_buffer.maxlen):
             broadcast_data = {
-                "time": x,
-                "temperature_f": 86,
-                "humidity": 34,
-                "aqi": 50,
-                "eco2": 1000,
-                "etvoc": 100,
+                "time": 1771380002099 + (x * 30000),
+                "temperature_f": random.randint(0, 2000),
+                "humidity": 30,
+                "aqi": 80,
+                "eco2": 200,
+                "etvoc": 2000,
             }
             data_buffer.append(broadcast_data)
 

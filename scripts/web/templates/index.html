@@ -222,6 +222,7 @@
             responsive: true,
             maintainAspectRatio: false,
             animation: false,
+            // parsing: false, decimation is not actually working disable parsing breaks all graphs
             interaction: {
                 mode: 'index',
                 intersect: false,
@@ -238,12 +239,15 @@
             },
             scales: {
                 x: {
+                    type: 'linear',
                     title: {
                         display: true,
                         text: 'Time (seconds)'
                     },
                     ticks: {
-                        maxTicksLimit: 10
+                        maxTicksLimit: 10,
+                        maxRotation: 0,
+                        autoSkip: true,
                     }
                 },
                 y: {
@@ -413,18 +417,18 @@
             tempHumChart.data.labels = chartData.time;
             tempHumChart.data.datasets[0].data = chartData.temperature_f;
             tempHumChart.data.datasets[1].data = chartData.humidity;
-            tempHumChart.update('none');
+            tempHumChart.update();
 
             // AQI
             aqiChart.data.labels = chartData.time;
             aqiChart.data.datasets[0].data = chartData.aqi;
-            aqiChart.update('none');
+            aqiChart.update();
 
             // Gases
             gasesChart.data.labels = chartData.time;
             gasesChart.data.datasets[0].data = chartData.eco2;
             gasesChart.data.datasets[1].data = chartData.etvoc;
-            gasesChart.update('none');
+            gasesChart.update();
         }
 
         // Handle incoming sensor data
